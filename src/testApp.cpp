@@ -48,6 +48,14 @@ void testApp::setup() {
     openNIDevice.setFrame(30);
     
     verdana.loadFont(ofToDataPath("verdana.ttf"), 18);
+    pics[0].loadImage("../../img/000.jpg");
+    pics[1].loadImage("../../img/001.jpg");
+    pics[2].loadImage("../../img/002.jpg");
+    pics[3].loadImage("../../img/003.jpg");
+    pics[4].loadImage("../../img/004.jpg");
+    picIndex = 0;
+    
+    good.loadImage("../../img/good.jpg");
 }
 
 //--------------------------------------------------------------
@@ -87,49 +95,16 @@ void testApp::update(){
 void testApp::draw(){
 	ofSetColor(255, 255, 255);
     
+    pics[picIndex].draw(0, 0);
     ofPushMatrix();
     // draw debug (ie., image, depth, skeleton)
-    openNIDevice.drawDebug();
+//    openNIDevice.drawDebug();
+    openNIDevice.drawImage(WINDOW_WIDTH/2, 0);
+    openNIDevice.drawSkeletons(WINDOW_WIDTH/2, 0);
     ofPopMatrix();
     
     ofPushMatrix();
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-    
-    // iterate through users
-    for (int i = 0; i < openNIDevice.getNumTrackedHands(); i++){
-        
-        // get a reference to this user
-//        ofxOpenNIHand & hand = openNIDevice.getTrackedHand(i);
-        
-        // get hand position
-//        ofPoint & handPosition = hand.getPosition();
-        
-        // draw a rect at the position
-//        ofSetColor(255,0,0);
-//        ofRect(handPosition.x, handPosition.y, 2, 2);
-        
-        // set depthThresholds based on handPosition
-        ofxOpenNIDepthThreshold & depthThreshold = openNIDevice.getDepthThreshold(i); // we just use hand index for the depth threshold index
-        
-        // draw ROI over the depth image
-//        ofSetColor(255,255,255);
-//        depthThreshold.drawROI();
-        
-        // draw depth and mask textures below the depth image at 0.5 scale
-        // you could instead just do pixel maths here for finger tracking etc
-        // by using depthThreshold.getDepthPixels() and/or depthThreshold.getMaskPixels()
-        // and turn off the textures in the initial setup/addDepthTexture calls
-        
-        ofPushMatrix();
-        ofTranslate(320 * i, 480);
-        ofScale(0.5, 0.5);
-        depthThreshold.drawDepth();
-        depthThreshold.drawMask();
-        ofPopMatrix();
-        
-        // i think this is pretty good but might be a frame behind???
-        
-    }
     
     ofDisableBlendMode();
     ofPopMatrix();
@@ -210,37 +185,88 @@ void testApp::RenderSkeleton(){
         
         ofxOpenNIJoint head = user.getJoint(JOINT_HEAD);
         ofxOpenNIJoint neck = user.getJoint(JOINT_NECK);
+        
+        ofxOpenNIJoint torso = user.getJoint(JOINT_TORSO);
     
-//        float leftHandAndShoulder = getAngleBetweenJoints(leftHand, leftShoulder);
-//        float rightHandAndShoulder = getAngleBetweenJoints(rightHand, rightShoulder);
-//        
-////        leftHandAndShoulder = static_cast<int>(leftHandAndShoulder);
-//        
-//        if(leftHandAndShoulder - rightHandAndShoulder > 0 && leftHandAndShoulder - rightHandAndShoulder <= 1 ){
-//            ofSetColor(128, 255, 0);
-//            verdana.drawString("0 < left - right <= 1", 20, 400);
-//        }
-//        
-//        if(rightHandAndShoulder - leftHandAndShoulder > 0 && rightHandAndShoulder - leftHandAndShoulder <= 1 ){
-//            ofSetColor(128, 255, 0);
-//            verdana.drawString("0 < right - left <= 1", 20, 400);
-//        }
-        
-        
         float lHandHead = getAngleBetweenJoints(leftHand, head);
         float rHandHead = getAngleBetweenJoints(rightHand, head);
         float lElbowHead = getAngleBetweenJoints(leftElbow, head);
         float rElbowHead = getAngleBetweenJoints(rightElbow, head);
+        float lHandTorso = getAngleBetweenJoints(leftHand, torso);
+        float rHandTorso = getAngleBetweenJoints(rightHand, torso);
         
-        ofSetColor(0, 255, 0);
-        verdana.drawString("leftHand : " + ofToString(lHandHead), 20, 380);
-        verdana.drawString("rightHand : " + ofToString(rHandHead), 20, 400);
-        verdana.drawString("leftElbow : " + ofToString(lElbowHead), 20, 420);
-        verdana.drawString("rightElbow : " + ofToString(rElbowHead), 20, 440);
-//        verdana.drawString("Left : " + ofToString(leftHandAndShoulder), 20, 420);
-//        verdana.drawString("Right : " + ofToString(rightHandAndShoulder), 20, 440);
+        ofSetColor(0, 0, 0);
+        verdana.drawString("lHandHead : " + ofToString(lHandHead), 20, 480);
+        verdana.drawString("rHandHead : " + ofToString(rHandHead), 20, 500);
+        verdana.drawString("lElbowHead : " + ofToString(lElbowHead), 20, 520);
+        verdana.drawString("rElbowHead : " + ofToString(rElbowHead), 20, 540);
+        verdana.drawString("lHandTorso : " + ofToString(lHandTorso), 20, 560);
+        verdana.drawString("rHandTorso : " + ofToString(rHandTorso), 20, 580);
+        
+        switch(picIndex){
+            case 0:
+                if (lHandHead >= 0.045 && lHandHead <= 0.2 &&
+                    rHandHead >= 5.2 && rHandHead <= 5.4 &&
+//                    lElbowHead >= 5.7 && lElbowHead <= 5.9 &&
+//                    rElbowHead >= 5.2 && rElbowHead <= 5.4 &&
+                    lHandTorso >= 0.8 && lHandTorso <= 1.0 &&
+                    rHandTorso >= 5.5 && rHandTorso <= 5.7)
+                    {
+                        ofSetColor(0, 0, 0);
+                        verdana.drawString("BINGO!", 20, 400);
+                        sleep(1);
+                        picIndex++;
+                    }
+                break;
+            case 1:
+                if (((lHandHead >= 5.2 && lHandHead <= 6.1) || (lHandHead >= 0.3 && lHandHead <= 0.45)) &&
+                    rHandHead >= 4.7 && rHandHead <= 5.2 &&
+                    lHandTorso >= 1.15 && lHandTorso <= 1.55 &&
+                    rHandTorso >= 0.9 && rHandTorso <= 1.5
+                    )
+                {
+                    good.draw(50, 200);
+                    sleep(1);
+                    picIndex++;
+                }
+                break;
+            case 2:
+                if (lHandHead >= 5.1 && lHandHead <= 5.35 &&
+                    rHandHead >= 0.1 && rHandHead <= 0.5 &&
+                    lHandTorso >= 5.5 && lHandTorso <= 5.8 &&
+                    rHandTorso >= 0.8 && rHandTorso <= 1.2)
+                {
+                    good.draw(50, 200);
+                    sleep(1);
+                    picIndex++;
+                }
+                break;
+            case 3:
+                if (lHandHead >= 1.1 && lHandHead <= 1.6 &&
+                    rHandHead >= 5.1 && rHandHead <= 5.4 &&
+                    lHandTorso >= 1.4 && lHandTorso <= 1.6 &&
+                    rHandTorso >= 5.4 && rHandTorso <= 5.6)
+                {
+                    good.draw(50, 200);
+                    sleep(1);
+                    picIndex++;
+                }
+                break;
+            case 4:
+                if (lHandHead >= 0.15 && lHandHead <= 0.35 &&
+                    rHandHead >= 0.15 && rHandHead <= 0.35 &&
+                    lHandTorso >= 0.8 && lHandTorso <= 1.2 &&
+                    rHandTorso >= 0.8 && rHandTorso <= 1.2)
+                {
+                    good.draw(50, 200);
+                    sleep(1);
+                    picIndex = 0;
+                }
+                break;
+            default:
+                break;
+        }
     }
-    
 }
 
 float testApp::getAngleBetweenJoints(ofxOpenNIJoint j1, ofxOpenNIJoint j2){

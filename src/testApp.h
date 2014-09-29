@@ -38,6 +38,9 @@ private:
 	ofxOpenNI openNIDevice;
     ofTrueTypeFont verdana;
     
+    ofImage pics[5];
+    int picIndex;
+    ofImage good;
 };
 
 #endif
